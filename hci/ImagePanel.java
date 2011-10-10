@@ -42,6 +42,14 @@ public class ImagePanel extends JPanel implements MouseListener {
 	 */
 	ArrayList<Polygon> polygonsList = null;
 	
+	
+	/**
+	 * list of Colors
+	 */
+	Color[] colors = new Color[]{Color.BLACK, Color.BLUE, Color.CYAN, Color.DARK_GRAY, Color.GRAY, Color.GREEN, Color.LIGHT_GRAY, Color.MAGENTA, Color.ORANGE, Color.PINK, Color.RED, Color.WHITE, Color.YELLOW};
+	
+	int current_color = 0;
+	
 	/**
 	 * default constructor, sets up the window properties
 	 */
@@ -98,22 +106,24 @@ public class ImagePanel extends JPanel implements MouseListener {
 		ShowImage();
 		
 		//display all the completed polygons
-		for(Polygon polygon : polygonsList) {
-			drawPolygon(polygon);
-			finishPolygon(polygon);
+		for(int i = 0; i < polygonsList.size(); i++) {
+		  Polygon polygon = polygonsList.get(i);
+		  Color color = colors[i];
+			drawPolygon(polygon, color);
+			finishPolygon(polygon, color);
 		}
 		
 		//display current polygon
-		drawPolygon(currentPolygon);
+		drawPolygon(currentPolygon, colors[current_color]);
 	}
 	
 	/**
 	 * displays a polygon without last stroke
 	 * @param polygon to be displayed
 	 */
-	public void drawPolygon(Polygon polygon) {
+	public void drawPolygon(Polygon polygon, Color color) {
 		Graphics2D g = (Graphics2D)this.getGraphics();
-		g.setColor(Color.GREEN);
+		g.setColor(color);
 		ArrayList<Point> points = polygon.getPoints();
 		for(int i = 0; i < points.size(); i++) {
 			Point currentVertex = points.get(i);
@@ -129,7 +139,7 @@ public class ImagePanel extends JPanel implements MouseListener {
 	 * displays last stroke of the polygon (arch between the last and first vertices)
 	 * @param polygon to be finished
 	 */
-	public void finishPolygon(Polygon polygon) {
+	public void finishPolygon(Polygon polygon, Color color) {
 		//if there are less than 3 vertices than nothing to be completed
 		ArrayList<Point> points = polygon.getPoints();
 		if (polygon.size() >= 3) {
@@ -137,7 +147,7 @@ public class ImagePanel extends JPanel implements MouseListener {
 			Point lastVertex = points.get(points.size() - 1);
 		
 			Graphics2D g = (Graphics2D)this.getGraphics();
-			g.setColor(Color.GREEN);
+			g.setColor(color);
 			g.drawLine(firstVertex.getX(), firstVertex.getY(), lastVertex.getX(), lastVertex.getY());
 		}
 	}
@@ -148,10 +158,10 @@ public class ImagePanel extends JPanel implements MouseListener {
 	public void addNewPolygon() {
 		//finish the current polygon if any
 		if (currentPolygon != null ) {
-			finishPolygon(currentPolygon);
+			finishPolygon(currentPolygon, colors[current_color]);
 			polygonsList.add(currentPolygon);
 		}
-		
+		current_color += 1;
 		currentPolygon = new Polygon();
 	}
 
@@ -170,7 +180,7 @@ public class ImagePanel extends JPanel implements MouseListener {
 		
 		//if the left button than we will add a vertex to poly
 		if (e.getButton() == MouseEvent.BUTTON1) {
-			g.setColor(Color.GREEN);
+			g.setColor(colors[current_color]);
 			if (currentPolygon.size() != 0) {
 				Point lastVertex = currentPolygon.get(currentPolygon.size() - 1);
 				g.drawLine(lastVertex.getX(), lastVertex.getY(), x, y);

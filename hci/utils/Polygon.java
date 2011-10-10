@@ -1,16 +1,17 @@
 package hci.utils;
 
 import java.util.ArrayList;
+//import java.awt.Polygon;
 
 /**
  * simple class for handling points
  * @author Jakub
  *
  */
-public class Polygon {
+public class Polygon extends java.awt.Polygon {
 
   String label = "";
-	ArrayList<Point> points = null;
+  ArrayList<Point> points = null;
 	
 	
 	public Polygon() {
