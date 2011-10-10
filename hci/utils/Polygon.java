@@ -11,28 +11,36 @@ import java.util.ArrayList;
 public class Polygon extends java.awt.Polygon {
 
   String label = "";
-  ArrayList<Point> points = null;
+  //ArrayList<Point> points = null;
 	
 	
 	public Polygon() {
-	  this.points = new ArrayList<Point>();
+	  super();
 	}
 	
 	public Polygon(ArrayList<Point> points) {
-		this.points = points;
+		super();
+		for (Point p : points) {
+		  addPoint(p.getX(), p.getY());
+		}
 	}
 	
 	public Polygon(String label, ArrayList<Point> points) {
+		this(points);
 		this.label = label;
-		this.points = points;
 	}
 
 	public ArrayList<Point> getPoints() {
-		return this.points;
+		ArrayList<Point> points = new ArrayList<Point>();
+		for (int i = 0; i < npoints ; i++) {
+		  points.add(new Point(xpoints[i], ypoints[i]));
+		}
+		return points;
 	}
 
 	public void setPoints(ArrayList<Point> points) {
-		this.points = points;
+		// TBD
+		//this.points = points;
 	}
 
 	public String getLabel() {
@@ -46,15 +54,15 @@ public class Polygon extends java.awt.Polygon {
 	// Delegate methods to underlying points
 	
 	public void add(Point p) {
-	  this.points.add(p);
+	  addPoint(p.getX(), p.getY());
 	}
 	
 	public int size() {
-	  return points.size();
+	  return npoints;
 	}
 	
 	public Point get(int n) {
-	  return points.get(n);
+	  return new Point(xpoints[n], ypoints[n]);
 	}
 	
 }
