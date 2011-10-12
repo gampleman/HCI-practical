@@ -6,7 +6,7 @@ import java.util.ArrayList;
 /**
  * simple class for handling points
  * @author Jakub
- *
+ * @see http://download.oracle.com/javase/1.4.2/docs/api/java/awt/Polygon.html
  */
 public class Polygon extends java.awt.Polygon {
 
@@ -51,6 +51,12 @@ public class Polygon extends java.awt.Polygon {
 		this.label = label;
 	}
 	
+	public boolean closeToBeggening(int x, int y) {
+	  int dist_x = x - xpoints[0];
+	  int dist_y = y - ypoints[0];
+	  return dist_x * dist_x + dist_y * dist_y < 125;
+	}
+	
 	// Delegate methods to underlying points
 	
 	public void add(Point p) {
@@ -63,6 +69,16 @@ public class Polygon extends java.awt.Polygon {
 	
 	public Point get(int n) {
 	  return new Point(xpoints[n], ypoints[n]);
+	}
+	
+	public Point last() {
+	  Point p;
+    try {
+	     p = new Point(xpoints[npoints - 1], ypoints[npoints - 1]);
+    } catch (java.lang.ArrayIndexOutOfBoundsException e) {
+      p = null;
+    }
+	  return p;
 	}
 	
 }

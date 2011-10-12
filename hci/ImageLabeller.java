@@ -42,7 +42,7 @@ public class ImageLabeller extends JFrame {
 	 * handles New Object button action
 	 */
 	public void addNewPolygon() {
-		imagePanel.addNewPolygon();
+		//imagePanel.addNewPolygon();
 	}
 	
 	@Override
@@ -72,26 +72,26 @@ public class ImageLabeller extends JFrame {
 		this.setContentPane(appPanel);
 		
 
-        //create toolbox panel
-    toolboxPanel = new JPanel();
-        
-        //Add button
-		JButton newPolyButton = new JButton("New object");
-		newPolyButton.setMnemonic(KeyEvent.VK_N);
-		newPolyButton.setSize(50, 20);
-		newPolyButton.setEnabled(true);
-		newPolyButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-			    	addNewPolygon();
-			}
-		});
-		newPolyButton.setToolTipText("Click to add new object");
-		
-		toolboxPanel.add(newPolyButton);
-		
+       //      //create toolbox panel
+      //     toolboxPanel = new JPanel();
+      //         
+      //         //Add button
+      // JButton newPolyButton = new JButton("New object");
+      // newPolyButton.setMnemonic(KeyEvent.VK_N);
+      // newPolyButton.setSize(50, 20);
+      // newPolyButton.setEnabled(true);
+      // newPolyButton.addActionListener(new ActionListener() {
+      //  @Override
+      //  public void actionPerformed(ActionEvent e) {
+      //        addNewPolygon();
+      //  }
+      // });
+      // newPolyButton.setToolTipText("Click to add new object");
+      // 
+      // toolboxPanel.add(newPolyButton);
+   		
 		//add toolbox to window
-		appPanel.add(toolboxPanel);
+		//appPanel.add(toolboxPanel);
 		    //Create and set up the image panel.
 		imagePanel = new ImagePanel(imageFilename);
 		imagePanel.setOpaque(true); //content panes must be opaque
