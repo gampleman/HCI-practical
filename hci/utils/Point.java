@@ -16,6 +16,10 @@ public class Point {
 		this.x = x;
 		this.y = y;
 	}
+	
+	public Point(double x, double y) {
+	  this((int)Math.round(x), (int)Math.round(y));
+	}
 
 	public int getX() {
 		return x;

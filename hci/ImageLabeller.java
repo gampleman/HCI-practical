@@ -61,6 +61,7 @@ public class ImageLabeller extends JFrame {
 		  	public void windowClosing(WindowEvent event) {
 		  		//here we exit the program (maybe we should ask if the user really wants to do it?)
 		  		//maybe we also want to store the polygons somewhere? and read them next time
+		  		imagePanel.save();
 		  		System.out.println("Bye bye!");
 		    	System.exit(0);
 		  	}

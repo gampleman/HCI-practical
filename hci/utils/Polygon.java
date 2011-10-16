@@ -1,6 +1,9 @@
 package hci.utils;
 
 import java.util.ArrayList;
+import javax.swing.JOptionPane;
+import java.io.*;
+
 //import java.awt.Polygon;
 
 /**
@@ -23,6 +26,21 @@ public class Polygon extends java.awt.Polygon {
 		for (Point p : points) {
 		  addPoint(p.getX(), p.getY());
 		}
+	}
+	
+	public Polygon(String str) {
+	  java.util.Scanner s = new java.util.Scanner(str);
+	  this.label = s.nextLine();
+	  int x = -1;
+	  while(s.hasNextInt()) {
+	    if(x != -1) {
+	      addPoint(x, s.nextInt());
+	      x = -1;
+	    } else {
+	      x = s.nextInt();
+	    }
+	  }
+	  System.out.println(this);
 	}
 	
 	public Polygon(String label, ArrayList<Point> points) {
@@ -71,6 +89,11 @@ public class Polygon extends java.awt.Polygon {
 	  return new Point(xpoints[n], ypoints[n]);
 	}
 	
+	public Point getCenter() {
+	  java.awt.Rectangle r = this.getBounds();
+	  return new Point(r.getX()  + r.getWidth()/ 2, r.getY() + r.getHeight() / 2);
+	}
+	
 	public Point last() {
 	  Point p;
     try {
@@ -79,6 +102,14 @@ public class Polygon extends java.awt.Polygon {
       p = null;
     }
 	  return p;
+	}
+	
+	public String toString() {
+	  String s = getLabel() + "\n";
+	  for (int i=0; i<npoints; i++){
+    	s += "  " + xpoints[i] + " " + ypoints[i] + "\n";
+    }
+    return s;
 	}
 
 //save each object to a particular file (name of the file is the name of the object)

@@ -15,7 +15,9 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
-
+import javax.swing.JTextField;
+import javax.swing.JOptionPane;
+import java.io.*;
 import hci.utils.*;
 
 /**
@@ -23,7 +25,7 @@ import hci.utils.*;
  * @author Michal
  *
  */
-public class ImagePanel extends JPanel implements MouseListener, MouseMotionListener {
+public class ImagePanel extends JPanel implements MouseListener, MouseMotionListener, java.awt.event.ActionListener {
 	/**
 	 * some java stuff to get rid of warnings
 	 */
@@ -49,7 +51,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	private BufferedImage offImg;
 	private int w, h, m_x, m_y;
 	private boolean newBufferedImage;
-	
+	private String imageName;
 	/**
 	 * list of Colors
 	 */
@@ -82,6 +84,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	 */
 	public ImagePanel(String imageName) throws Exception{
 		this();
+		this.imageName = imageName;
 		image = ImageIO.read(new File(imageName));
 		if (image.getWidth() > 800 || image.getHeight() > 600) {
 			int newWidth = image.getWidth() > 800 ? 800 : (image.getWidth() * 600)/image.getHeight();
@@ -92,6 +95,12 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 			image.getGraphics().drawImage(scaledImage, 0, 0, this);
 			w = newWidth;
 			h = newHeight;
+		}
+		if ((new File(imageName + ".labels")).exists()) {
+		  System.out.println("Exists");
+		  load();
+		} else {
+		  System.out.println("Exists not: " + imageName + ".labels");
 		}
 	}
 
@@ -121,6 +130,31 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
     return g2;
   }
   
+  public void save() {
+    try {
+			FileWriter outFile = new FileWriter(imageName+".labels");
+		  PrintWriter out = new PrintWriter(outFile);
+      for (int i = 0; i < polygonsList.size(); i++) {
+        out.println(polygonsList.get(i));
+      }
+      out.close();
+    } catch (IOException e){
+      e.printStackTrace();
+    }
+  }
+  
+  public void load() throws java.io.FileNotFoundException {
+    System.out.println("Loading");
+    File f = new File(imageName + ".labels");
+    java.util.Scanner s = new java.util.Scanner(f);
+    s.useDelimiter("\\n\\s*\\n");
+    while(s.hasNext()) {
+      String str = s.next();
+      System.out.println("Match:\n\n#"+str + "#\n End Match");
+      this.polygonsList.add(new Polygon(str));
+    }
+  }
+  
 	/**
 	 * Displays the image
 	 */
@@ -134,6 +168,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	public void drawComplete(Graphics2D g, Polygon p, Color c) {
 	  g.setColor(c);
 	  g.draw(p);
+	  Point center = p.getCenter();
+	  g.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 16));
+	  g.drawString(p.getLabel(), center.getX() - p.getLabel().length() * 2, center.getY());
 	  g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 20));
 		g.fill(p);
 	}
@@ -220,20 +257,21 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		
 	}
 	
-	/**
-	 * moves current polygon to the list of polygons and makes pace for a new one
-	 */
-	// public void addNewPolygon() {
-	//     //finish the current polygon if any
-	//     Graphics2D g = (Graphics2D)this.getGraphics();
-	//     if (currentPolygon != null ) {
-	//       //finishPolygon(g, currentPolygon, colors[current_color]);
-	//       polygonsList.add(currentPolygon);
-	//     }
-	//     //current_color += 1;
-	//     currentPolygon = new Polygon();
-	//     paint(g);
-	//   }
+	public String showTextField() {
+	  // JTextField textField = new JTextField(20);
+	  //     textField.addActionListener(this);
+	  //     this.add(textField);
+	  String name = JOptionPane.showInputDialog(
+                 null, "Please enter the object name: ");
+    return name;
+	}
+	
+	
+	public void actionPerformed(java.awt.event.ActionEvent evt) {
+      //String text = textField.getText();
+      
+  }
+
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
@@ -250,13 +288,8 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		
 		//if the left button than we will add a vertex to poly
 		if (e.getButton() == MouseEvent.BUTTON1) {
-		  // g.setColor(colors[current_color]);
-		  //    if (currentPolygon.size() != 0) {
-		  //      Point lastVertex = currentPolygon.get(currentPolygon.size() - 1);
-		  //      g.drawLine(lastVertex.getX(), lastVertex.getY(), x, y);
-		  //    }
-		  //    g.fillOval(x-5,y-5,10,10);
 			if(snapping) {
+			  currentPolygon.setLabel(showTextField());
         polygonsList.add(currentPolygon);
         currentPolygon = new Polygon();
 			} else {
