@@ -80,5 +80,32 @@ public class Polygon extends java.awt.Polygon {
     }
 	  return p;
 	}
+
+//save each object to a particular file (name of the file is the name of the object)
+	public void write2File(String label, ArrayList<Point> points){
+		try {
+			FileWriter outFile = new FileWriter(label+".txt");
+		    PrintWriter out = new PrintWriter(outFile);
+            for (int i=0; i<points.size(); i++){
+            	out.println(points.get(i).getX() +" "+points.get(i).getY());
+            }
+            out.close();
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+	}
+	
+	//input object's name
+	public String setLabel(int unnamed){//number of unnamed objects
+ 		String name = JOptionPane.showInputDialog(
+                 null, "Please enter the object name: ");
+ 		if(name != null && name.length() > 0){//valid input
+ 			JOptionPane.showMessageDialog(null, "Thank you!", "HCI", 1);
+ 		}else{//inputed nothing or cancelled
+ 			JOptionPane.showMessageDialog(null, "The program will choose a name for this object", "HCI", 1);
+ 			name = "unnamed"+Integer.toString(unnamed);
+ 		}
+ 		return name;
+  	   }
 	
 }
