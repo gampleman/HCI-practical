@@ -3,9 +3,6 @@ package hci.utils;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import java.io.*;
-
-//import java.awt.Polygon;
-
 /**
  * simple class for handling points
  * @author Jakub
@@ -40,7 +37,6 @@ public class Polygon extends java.awt.Polygon {
 	      x = s.nextInt();
 	    }
 	  }
-	  System.out.println(this);
 	}
 	
 	public Polygon(String label, ArrayList<Point> points) {
@@ -60,19 +56,39 @@ public class Polygon extends java.awt.Polygon {
 		// TBD
 		//this.points = points;
 	}
+  
+  public void setPoint(int index, int x, int y) {
+    xpoints[index] = x;
+    ypoints[index] = y;
+    invalidate();
+  }
 
 	public String getLabel() {
 		return label;
 	}
 
+  
 	public void setLabel(String label) {
 		this.label = label;
 	}
 	
 	public boolean closeToBeggening(int x, int y) {
-	  int dist_x = x - xpoints[0];
-	  int dist_y = y - ypoints[0];
-	  return dist_x * dist_x + dist_y * dist_y < 125;
+	  return d2(x,y, xpoints[0], ypoints[0]) < 125;
+	}
+	
+	public int closeToCorner(int x, int y) {
+	  for (int i = 0; i < npoints ; i++) {
+		  if(d2(x,y,xpoints[i], ypoints[i]) < 145) {
+		    return i;
+		  }
+		}
+		return -1;
+	}
+	
+	private int d2(int x, int y, int x1, int y1) { // distance squared
+	  int dist_x = x - x1;
+	  int dist_y = y - y1;
+	  return dist_x * dist_x + dist_y * dist_y;
 	}
 	
 	// Delegate methods to underlying points

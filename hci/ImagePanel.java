@@ -19,13 +19,16 @@ import javax.swing.JTextField;
 import javax.swing.JOptionPane;
 import java.io.*;
 import hci.utils.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
 /**
  * Handles image editing panel
  * @author Michal
  *
  */
-public class ImagePanel extends JPanel implements MouseListener, MouseMotionListener, java.awt.event.ActionListener {
+public class ImagePanel extends JPanel implements MouseListener, MouseMotionListener, java.awt.event.ActionListener, java.awt.event.KeyListener {
 	/**
 	 * some java stuff to get rid of warnings
 	 */
@@ -41,6 +44,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	 */
 	Polygon currentPolygon = null;
 	
+	int mode = 0;
+	int selectedIndex = -1;
+	
 	/**
 	 * list of polygons
 	 */
@@ -52,6 +58,8 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	private int w, h, m_x, m_y;
 	private boolean newBufferedImage;
 	private String imageName;
+	private int pointBeingDragged = -1;
+	private Point mousePressedPoint;
 	/**
 	 * list of Colors
 	 */
@@ -75,6 +83,20 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		
 		addMouseListener(this);
 		addMouseMotionListener(this);
+		// javax.swing.Action action = new javax.swing.AbstractAction() { 
+		//      void actionPerformed(java.awt.event.ActionEvent e) { 
+		//        ImagePanel ip = (ImagePanel)e.getSource();
+		//        ip.delete(); 
+		//      } 
+		//    };
+	  addKeyListener(this);
+	}
+	
+	@Override
+	public boolean isFocusable() { return true; }
+	
+	public void delete() {
+	  System.out.println("Delete called");
 	}
 	
 	/**
@@ -150,7 +172,6 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
     s.useDelimiter("\\n\\s*\\n");
     while(s.hasNext()) {
       String str = s.next();
-      System.out.println("Match:\n\n#"+str + "#\n End Match");
       this.polygonsList.add(new Polygon(str));
     }
   }
@@ -170,9 +191,19 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	  g.draw(p);
 	  Point center = p.getCenter();
 	  g.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 16));
-	  g.drawString(p.getLabel(), center.getX() - p.getLabel().length() * 2, center.getY());
+	  g.drawString(p.getLabel(), center.getX() - p.getLabel().length() * 2, center.getY() + 8);
 	  g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 20));
 		g.fill(p);
+	}
+	
+	
+	public void drawSelection(Graphics2D g, Polygon p, Color c) {
+	  g.setColor(c);
+	  ArrayList<Point> points = p.getPoints();
+		for(int i = 0; i < points.size(); i++) {
+			Point currentVertex = points.get(i);
+			g.fillOval(currentVertex.getX() - 5, currentVertex.getY() - 5, 10, 10);
+		}
 	}
 	
 	@Override
@@ -185,9 +216,6 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
         return;
 
     Graphics2D g2 = getBuffer();
-
-    
-	  
 		super.paint(g2);
 		
 		//display iamge
@@ -200,6 +228,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		  Color color = colors[i];
 			drawComplete(g2, polygon, color);
 			current_color++;
+		}
+		if(selectedIndex != -1) {
+		  drawSelection(g2, polygonsList.get(selectedIndex), colors[selectedIndex]);
 		}
 		//display current polygon
 		if(currentPolygon != null)
@@ -261,8 +292,15 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	  // JTextField textField = new JTextField(20);
 	  //     textField.addActionListener(this);
 	  //     this.add(textField);
-	  String name = JOptionPane.showInputDialog(
-                 null, "Please enter the object name: ");
+	  String name = JOptionPane.showInputDialog("Please enter the object name: ");
+    return name;
+	}
+	
+	public String showTextField(String value) {
+	  // JTextField textField = new JTextField(20);
+	  //     textField.addActionListener(this);
+	  //     this.add(textField);
+	  String name = JOptionPane.showInputDialog("Please edit the object name: ", value);
     return name;
 	}
 	
@@ -277,7 +315,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	public void mouseClicked(MouseEvent e) {
 		int x = e.getX();
 		int y = e.getY();
-		
+		requestFocusInWindow();
 		//check if the cursos withing image area
 		if (x > image.getWidth() || y > image.getHeight()) {
 			//if not do nothing
@@ -292,11 +330,25 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 			  currentPolygon.setLabel(showTextField());
         polygonsList.add(currentPolygon);
         currentPolygon = new Polygon();
+			} else if(currentPolygon.size() == 0 && e.getClickCount() == 1) {
+			  // find the current image 
+			  selectedIndex = -1;
+			  for (int i = 0; i < polygonsList.size(); i++) {
+			   if(polygonsList.get(i).contains(x,y)) {
+			     selectedIndex = i;
+			     break;
+			   }
+			  }
+			  if(selectedIndex == -1) {
+			    currentPolygon.add(new Point(x,y));
+			  }
+			} else if(currentPolygon.size() == 0 && e.getClickCount() == 2 && selectedIndex != -1) {
+			    Polygon p = polygonsList.get(selectedIndex);
+			    p.setLabel(showTextField(p.getLabel()));
 			} else {
 			  currentPolygon.add(new Point(x,y));
+			  selectedIndex = -1;
 			}
-			
-			System.out.println(x + " " + y);
 		}
     paint(g);
 	}
@@ -305,11 +357,21 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	public void mouseMoved(MouseEvent e) {
 	  m_x = e.getX();
 		m_y = e.getY();
+		
 		if(currentPolygon != null && currentPolygon.size() > 2 && currentPolygon.closeToBeggening(m_x, m_y)) {
 		  this.snapping = true;
+		  this.setCursor(new java.awt.Cursor(java.awt.Cursor.CROSSHAIR_CURSOR));
+		} else if(selectedIndex != -1 && polygonsList.get(selectedIndex).closeToCorner(m_x, m_y) != -1) {
+		  this.setCursor(new java.awt.Cursor(java.awt.Cursor.MOVE_CURSOR));
+		  this.snapping = false;
+		} else if(selectedIndex != -1 && polygonsList.get(selectedIndex).contains(m_x, m_y)) {
+		  this.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		  this.snapping = false;
 		} else {
+		  this.setCursor(new java.awt.Cursor(java.awt.Cursor.CROSSHAIR_CURSOR));
 		  this.snapping = false;
 		}
+		
 		if(currentPolygon != null)
 		{
 		  Graphics2D g = (Graphics2D)this.getGraphics();
@@ -319,6 +381,26 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	
 	@Override
 	public void mouseDragged(MouseEvent e) {
+	  int i;
+	  int x = e.getX(); int y = e.getY();
+	  if(selectedIndex != -1) {
+	    Polygon p = polygonsList.get(selectedIndex);
+	    if(pointBeingDragged != -1) {
+	      p.setPoint(pointBeingDragged, x, y);
+	    } else if((i = p.closeToCorner(x, y)) != -1) {
+  	    p.setPoint(i, x, y);
+        pointBeingDragged = i;
+      } else if(p.contains(x, y)) {
+        p.translate(x - mousePressedPoint.getX(),y - mousePressedPoint.getY());
+        mousePressedPoint = new Point(e.getX(), e.getY());
+  	  } else {  	      
+	      pointBeingDragged = -1;
+	      return;
+	    }
+	    
+	    Graphics2D g = (Graphics2D)this.getGraphics();
+		  paint(g);
+	  }
 	}
 
 	@Override
@@ -330,11 +412,47 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	}
 
 	@Override
-	public void mousePressed(MouseEvent arg0) {
+	public void mousePressed(MouseEvent e) {
+	  mousePressedPoint = new Point(e.getX(), e.getY());
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
+	  pointBeingDragged = -1;
 	}
+	
+
+  public void keyTyped(KeyEvent e) {
+  }
+
+
+  public void keyPressed(KeyEvent e) {
+
+  }
+
+
+  public void keyReleased(KeyEvent e) {
+    System.out.println(e.getKeyCode());
+    switch(e.getKeyCode()) {
+      case KeyEvent.VK_BACK_SPACE:
+      case KeyEvent.VK_DELETE:
+        if(selectedIndex != -1) {
+          polygonsList.remove(selectedIndex);
+          selectedIndex = -1;
+        } else {
+          currentPolygon = new Polygon();
+        }
+        
+  		  break;
+  		case KeyEvent.VK_ENTER:
+  		  selectedIndex = -1;
+  		  break;
+    }
+    Graphics2D g = (Graphics2D)this.getGraphics();
+	  paint(g);
+    
+  }
+  
+  
 	
 }
