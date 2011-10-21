@@ -84,7 +84,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		
 		//hint = new JLabel("Test string");
 		//add(hint);
-		//System.out.println(isDoubleBuffered());
+		System.out.println(isDoubleBuffered());
 		setToolTipText("Test");
 		setBorder(null);
 		addMouseListener(this);
@@ -160,8 +160,13 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
   
   public void saveAs(String path) {
     try {
+<<<<<<< HEAD
 			FileWriter outFile = new FileWriter(path);
 		  PrintWriter out = new PrintWriter(outFile);
+=======
+      FileWriter outFile = new FileWriter(imageName+".labels");
+      PrintWriter out = new PrintWriter(outFile);
+>>>>>>> b1f40a3c3516b3fd85ad8bb9bc33c529b0330ea9
       for (int i = 0; i < polygonsList.size(); i++) {
         out.println(polygonsList.get(i));
       }
