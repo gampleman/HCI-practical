@@ -22,7 +22,7 @@ import hci.utils.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-
+import javax.swing.JLabel;
 /**
  * Handles image editing panel
  * @author Michal
@@ -54,12 +54,13 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	
 	boolean snapping = false;
 	
-	private BufferedImage offImg;
+	//private BufferedImage offImg;
 	private int w, h, m_x, m_y;
-	private boolean newBufferedImage;
+	//private boolean newBufferedImage;
 	private String imageName;
 	private int pointBeingDragged = -1;
 	private Point mousePressedPoint;
+	private JLabel hint;
 	/**
 	 * list of Colors
 	 */
@@ -81,14 +82,13 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		this.setPreferredSize(panelSize);
 		this.setMaximumSize(panelSize);
 		
+		//hint = new JLabel("Test string");
+		//add(hint);
+		//System.out.println(isDoubleBuffered());
+		setToolTipText("Test");
+		setBorder(null);
 		addMouseListener(this);
 		addMouseMotionListener(this);
-		// javax.swing.Action action = new javax.swing.AbstractAction() { 
-		//      void actionPerformed(java.awt.event.ActionEvent e) { 
-		//        ImagePanel ip = (ImagePanel)e.getSource();
-		//        ip.delete(); 
-		//      } 
-		//    };
 	  addKeyListener(this);
 	}
 	
@@ -117,6 +117,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 			image.getGraphics().drawImage(scaledImage, 0, 0, this);
 			w = newWidth;
 			h = newHeight;
+			//updateUI();
 		}
 		if ((new File(imageName + ".labels")).exists()) {
 		  System.out.println("Exists");
@@ -124,33 +125,34 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		} else {
 		  System.out.println("Exists not: " + imageName + ".labels");
 		}
+		updateUI();
 	}
 
-  public Graphics2D getBuffer() {
-    Graphics2D g2 = null;
-
-    if ( offImg == null || offImg.getWidth() != w ||
-         offImg.getHeight() != h ) {
-        offImg = (BufferedImage) createImage(w, h);
-        newBufferedImage = true;
-    }
-
-    if ( offImg != null ) {
-        g2 = offImg.createGraphics();
-        g2.setBackground(getBackground());
-    }
-
-    // .. set attributes ..
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                        RenderingHints.VALUE_ANTIALIAS_ON);
-    g2.setRenderingHint(RenderingHints.KEY_RENDERING,
-                        RenderingHints.VALUE_RENDER_QUALITY);
-
-    // .. clear canvas ..
-    g2.clearRect(0, 0, w, h);
-
-    return g2;
-  }
+  // public Graphics2D getBuffer() {
+  //    Graphics2D g2 = null;
+  // 
+  //    if ( offImg == null || offImg.getWidth() != w ||
+  //         offImg.getHeight() != h ) {
+  //        offImg = (BufferedImage) createImage(w, h);
+  //        newBufferedImage = true;
+  //    }
+  // 
+  //    if ( offImg != null ) {
+  //        g2 = offImg.createGraphics();
+  //        g2.setBackground(getBackground());
+  //    }
+  // 
+  //    // .. set attributes ..
+  //    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+  //                        RenderingHints.VALUE_ANTIALIAS_ON);
+  //    g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+  //                        RenderingHints.VALUE_RENDER_QUALITY);
+  // 
+  //    // .. clear canvas ..
+  //    g2.clearRect(0, 0, w, h);
+  // 
+  //    return g2;
+  //  }
   
   public void save() {
     try {
@@ -181,8 +183,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	 */
 	public void ShowImage(Graphics2D g) {		
 		if (image != null) {
-			g.drawImage(
-					image, 0, 0, null);
+			g.drawImage(image, 0, 0, null);
 		}
 	}
 	
@@ -192,7 +193,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	  Point center = p.getCenter();
 	  g.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 16));
 	  g.drawString(p.getLabel(), center.getX() - p.getLabel().length() * 2, center.getY() + 8);
-	  g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 20));
+	  g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 40));
 		g.fill(p);
 	}
 	
@@ -215,15 +216,20 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
     if ( w <= 0 || h <= 0 )
         return;
 
-    Graphics2D g2 = getBuffer();
-		super.paint(g2);
-		
-		//display iamge
+    Graphics2D g2 = (Graphics2D)getGraphics();//getBuffer();
+		//super.paint(g2);
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                           RenderingHints.VALUE_ANTIALIAS_ON);
+       g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+                           RenderingHints.VALUE_RENDER_QUALITY);
+    
+       // .. clear canvas ..
+       g2.clearRect(0, 0, w, h);
+		//display image
 		ShowImage(g2);
 		int current_color = 1;
 		//display all the completed polygons
 		for(int i = 0; i < polygonsList.size(); i++) {
-
 		  Polygon polygon = polygonsList.get(i);
 		  Color color = colors[i];
 			drawComplete(g2, polygon, color);
@@ -244,12 +250,12 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		    g2.drawLine(currentVertex.getX(), currentVertex.getY(), firstVertex.getX(), firstVertex.getY());
 		  }
   	}
-		g2.dispose();
+		//g2.dispose();
 
-    if ( offImg != null && isShowing() ) {
-        g.drawImage(offImg, 0, 0, this);
-    }
-    newBufferedImage = false;
+    //if ( offImg != null && isShowing() ) {
+    //    g.drawImage(offImg, 0, 0, this);
+    //}
+    //newBufferedImage = false;
 	}
 	
 	/**
@@ -289,19 +295,22 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	}
 	
 	public String showTextField() {
-	  // JTextField textField = new JTextField(20);
-	  //     textField.addActionListener(this);
-	  //     this.add(textField);
-	  String name = JOptionPane.showInputDialog("Please enter the object name: ");
-    return name;
+	  String name = JOptionPane.showInputDialog("Please enter a label for the object: ");
+	  if(name != null) {
+      return name;
+    } else {
+      return "Unlabeled";
+    }
 	}
 	
 	public String showTextField(String value) {
-	  // JTextField textField = new JTextField(20);
-	  //     textField.addActionListener(this);
-	  //     this.add(textField);
-	  String name = JOptionPane.showInputDialog("Please edit the object name: ", value);
-    return name;
+	  String name = JOptionPane.showInputDialog("Please edit the object's label: ", value);
+    if(name != null) {
+      return name;
+    } else {
+      return value;
+    }
+    
 	}
 	
 	
@@ -350,7 +359,8 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 			  selectedIndex = -1;
 			}
 		}
-    paint(g);
+    //paint(g);
+    updateUI();
 	}
 	
 	@Override
@@ -367,6 +377,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		} else if(selectedIndex != -1 && polygonsList.get(selectedIndex).contains(m_x, m_y)) {
 		  this.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 		  this.snapping = false;
+		} else if(aboveAPolygon(m_x, m_y)) {
+		  this.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR ));
+		  this.snapping = false;
 		} else {
 		  this.setCursor(new java.awt.Cursor(java.awt.Cursor.CROSSHAIR_CURSOR));
 		  this.snapping = false;
@@ -374,10 +387,44 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		
 		if(currentPolygon != null)
 		{
-		  Graphics2D g = (Graphics2D)this.getGraphics();
-		  paint(g);
+		  //Graphics2D g = (Graphics2D)this.getGraphics();
+		  //paint(g);
+		  updateUI();
+		  //revalidate();
+		  //repaint(0, 0,0, getWidth(), getHeight());
 		}
 	}
+	
+	private boolean aboveAPolygon(int x, int y)
+	{
+	  for(Polygon p : polygonsList) {
+	    if(p.contains(x,y)) {
+	      return true;
+	    }
+	  }
+	  return false;
+	}
+	
+	/*
+	Context sensitive help.
+	*/
+	@Override
+	public String getToolTipText(MouseEvent e) {
+	  m_x = e.getX();
+		m_y = e.getY();
+		if(currentPolygon != null && currentPolygon.size() > 2 && currentPolygon.closeToBeggening(m_x, m_y)) {
+		  return "Click to complete current polygon.";
+		} else if(selectedIndex != -1 && polygonsList.get(selectedIndex).closeToCorner(m_x, m_y) != -1) {
+		  return "Drag to change corner position.";
+		} else if(selectedIndex != -1 && polygonsList.get(selectedIndex).contains(m_x, m_y)) {
+		  return "Drag to move polygon, double click to change label.";
+		} else if(aboveAPolygon(m_x, m_y)) {
+		  return "Click to select this polygon.";
+		} else {
+		  return "Click to add vertex.";
+		}
+	}
+	
 	
 	@Override
 	public void mouseDragged(MouseEvent e) {
@@ -398,8 +445,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	      return;
 	    }
 	    
-	    Graphics2D g = (Graphics2D)this.getGraphics();
-		  paint(g);
+	    //Graphics2D g = (Graphics2D)this.getGraphics();
+		  //paint(g);
+		  updateUI();
 	  }
 	}
 
@@ -427,7 +475,33 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 
 
   public void keyPressed(KeyEvent e) {
-
+    
+    switch(e.getKeyCode()) {    
+      case KeyEvent.VK_LEFT:
+  		  if(selectedIndex != -1) {
+           polygonsList.get(selectedIndex).translate(-1, 0);
+        }
+        updateUI();
+        break;
+      case KeyEvent.VK_RIGHT:
+  		  if(selectedIndex != -1) {
+           polygonsList.get(selectedIndex).translate(1, 0);
+        }
+        updateUI();
+        break;
+      case KeyEvent.VK_UP:
+  		  if(selectedIndex != -1) {
+           polygonsList.get(selectedIndex).translate(0, -1);
+        }
+        updateUI();
+        break;
+      case KeyEvent.VK_DOWN:
+  		  if(selectedIndex != -1) {
+           polygonsList.get(selectedIndex).translate(0, 1);
+        }
+        updateUI();
+        break;
+    }
   }
 
 
@@ -445,12 +519,20 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
         
   		  break;
   		case KeyEvent.VK_ENTER:
-  		  selectedIndex = -1;
+  		  if(currentPolygon != null && selectedIndex == -1 && currentPolygon.size() > 2) {
+  		    currentPolygon.setLabel(showTextField());
+          polygonsList.add(currentPolygon);
+          currentPolygon = new Polygon();
+  		  } else {
+  		    selectedIndex = -1;
+  		  }
   		  break;
+  		
+  		
     }
-    Graphics2D g = (Graphics2D)this.getGraphics();
-	  paint(g);
-    
+    //Graphics2D g = (Graphics2D)this.getGraphics();
+	  //paint(g);
+    updateUI();
   }
   
   
