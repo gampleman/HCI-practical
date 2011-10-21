@@ -155,8 +155,12 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
   //  }
   
   public void save() {
+    saveAs(imageName+".labels");
+  }
+  
+  public void saveAs(String path) {
     try {
-			FileWriter outFile = new FileWriter(imageName+".labels");
+			FileWriter outFile = new FileWriter(path);
 		  PrintWriter out = new PrintWriter(outFile);
       for (int i = 0; i < polygonsList.size(); i++) {
         out.println(polygonsList.get(i));
@@ -341,6 +345,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
         currentPolygon = new Polygon();
 			} else if(currentPolygon.size() == 0 && e.getClickCount() == 1) {
 			  // find the current image 
+			  int li = selectedIndex;
 			  selectedIndex = -1;
 			  for (int i = 0; i < polygonsList.size(); i++) {
 			   if(polygonsList.get(i).contains(x,y)) {
@@ -348,14 +353,15 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 			     break;
 			   }
 			  }
-			  if(selectedIndex == -1) {
+			  if(selectedIndex == -1 && li == -1) {
 			    currentPolygon.add(new Point(x,y));
 			  }
 			} else if(currentPolygon.size() == 0 && e.getClickCount() == 2 && selectedIndex != -1) {
 			    Polygon p = polygonsList.get(selectedIndex);
 			    p.setLabel(showTextField(p.getLabel()));
-			} else {
+			} else if(selectedIndex == -1) {
 			  currentPolygon.add(new Point(x,y));
+			} else {
 			  selectedIndex = -1;
 			}
 		}
@@ -377,7 +383,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		} else if(selectedIndex != -1 && polygonsList.get(selectedIndex).contains(m_x, m_y)) {
 		  this.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 		  this.snapping = false;
-		} else if(aboveAPolygon(m_x, m_y)) {
+		} else if(aboveAPolygon(m_x, m_y) || selectedIndex != -1) {
 		  this.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR ));
 		  this.snapping = false;
 		} else {
@@ -420,6 +426,8 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		  return "Drag to move polygon, double click to change label.";
 		} else if(aboveAPolygon(m_x, m_y)) {
 		  return "Click to select this polygon.";
+		} else if(selectedIndex != -1) {
+		  return "Click to deselect.";
 		} else {
 		  return "Click to add vertex.";
 		}

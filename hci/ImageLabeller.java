@@ -28,6 +28,8 @@ import java.io.*;
 import javax.swing.JOptionPane;
 import java.net.FileNameMap;
 import java.net.URLConnection;
+import javax.swing.filechooser.*;
+import java.awt.Desktop;
 
 /**
  * Main class of the program - handles display of the main window
@@ -145,13 +147,22 @@ public class ImageLabeller extends JFrame implements ActionListener {
             KeyEvent.VK_S, ActionEvent.CTRL_MASK));
     menu.add(menuItem);
     menuItem.addActionListener(this);
+    menuItem = new JMenuItem("Save As...");
+    menuItem.setAccelerator(KeyStroke.getKeyStroke(
+            KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.ALT_MASK));
+    menu.add(menuItem);
+    menuItem.addActionListener(this);
     // OSX apps need a help menu
     menu = new JMenu("Help");
     menu.setMnemonic(KeyEvent.VK_N);
     menu.getAccessibleContext().setAccessibleDescription(
-            "This menu does nothing");
+            "Help menu");
     menuBar.add(menu);
-    
+
+
+    menuItem = new JMenuItem("Show Introductory Video");
+    menu.add(menuItem);
+    menuItem.addActionListener(this);
 
 
     setJMenuBar(menuBar);
@@ -184,6 +195,23 @@ public class ImageLabeller extends JFrame implements ActionListener {
             }
         }
 
+    } else if(txt == "Save") {
+      imagePanel.save();
+    } else if(txt == "Save As...") {
+      JFileChooser fc = new JFileChooser();
+      int returnVal = fc.showSaveDialog(this);
+      if (returnVal == JFileChooser.APPROVE_OPTION) {
+          File file = fc.getSelectedFile();
+          imagePanel.saveAs(file.getPath());
+      }
+    } else if(txt == "Show Introductory Video") {
+      try {
+        File mediaURL = new File("hci/help/Screencast.mkv");
+        Desktop desktop = Desktop.getDesktop();
+        desktop.open(mediaURL);
+       } catch(java.io.IOException er) {
+         er.printStackTrace();
+       }
     }
   }
 	
