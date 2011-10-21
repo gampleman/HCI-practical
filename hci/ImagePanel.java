@@ -54,9 +54,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	
 	boolean snapping = false;
 	
-	//private BufferedImage offImg;
+	private BufferedImage offImg;
 	private int w, h, m_x, m_y;
-	//private boolean newBufferedImage;
+	private boolean newBufferedImage;
 	private String imageName;
 	private int pointBeingDragged = -1;
 	private Point mousePressedPoint;
@@ -84,7 +84,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		
 		//hint = new JLabel("Test string");
 		//add(hint);
-		//System.out.println(isDoubleBuffered());
+		System.out.println(isDoubleBuffered());
 		setToolTipText("Test");
 		setBorder(null);
 		addMouseListener(this);
@@ -128,36 +128,36 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		updateUI();
 	}
 
-  // public Graphics2D getBuffer() {
-  //    Graphics2D g2 = null;
-  // 
-  //    if ( offImg == null || offImg.getWidth() != w ||
-  //         offImg.getHeight() != h ) {
-  //        offImg = (BufferedImage) createImage(w, h);
-  //        newBufferedImage = true;
-  //    }
-  // 
-  //    if ( offImg != null ) {
-  //        g2 = offImg.createGraphics();
-  //        g2.setBackground(getBackground());
-  //    }
-  // 
-  //    // .. set attributes ..
-  //    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-  //                        RenderingHints.VALUE_ANTIALIAS_ON);
-  //    g2.setRenderingHint(RenderingHints.KEY_RENDERING,
-  //                        RenderingHints.VALUE_RENDER_QUALITY);
-  // 
-  //    // .. clear canvas ..
-  //    g2.clearRect(0, 0, w, h);
-  // 
-  //    return g2;
-  //  }
+   public Graphics2D getBuffer() {
+      Graphics2D g2 = null;
+   
+      if ( offImg == null || offImg.getWidth() != w ||
+           offImg.getHeight() != h ) {
+          offImg = (BufferedImage) createImage(w, h);
+          newBufferedImage = true;
+      }
+   
+      if ( offImg != null ) {
+        g2 = offImg.createGraphics();
+        g2.setBackground(getBackground());
+      }
+   
+      // .. set attributes ..
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                          RenderingHints.VALUE_ANTIALIAS_ON);
+      g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+                          RenderingHints.VALUE_RENDER_QUALITY);
+   
+      // .. clear canvas ..
+      g2.clearRect(0, 0, w, h);
+   
+      return g2;
+    }
   
   public void save() {
     try {
-			FileWriter outFile = new FileWriter(imageName+".labels");
-		  PrintWriter out = new PrintWriter(outFile);
+      FileWriter outFile = new FileWriter(imageName+".labels");
+      PrintWriter out = new PrintWriter(outFile);
       for (int i = 0; i < polygonsList.size(); i++) {
         out.println(polygonsList.get(i));
       }
@@ -216,7 +216,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
     if ( w <= 0 || h <= 0 )
         return;
 
-    Graphics2D g2 = (Graphics2D)getGraphics();//getBuffer();
+    Graphics2D g2 = (Graphics2D)getBuffer();//getGraphics();
 		//super.paint(g2);
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
@@ -250,12 +250,12 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		    g2.drawLine(currentVertex.getX(), currentVertex.getY(), firstVertex.getX(), firstVertex.getY());
 		  }
   	}
-		//g2.dispose();
+		g2.dispose();
 
-    //if ( offImg != null && isShowing() ) {
-    //    g.drawImage(offImg, 0, 0, this);
-    //}
-    //newBufferedImage = false;
+    if ( offImg != null && isShowing() ) {
+        g.drawImage(offImg, 0, 0, this);
+    }
+    newBufferedImage = false;
 	}
 	
 	/**
@@ -387,9 +387,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		
 		if(currentPolygon != null)
 		{
-		  //Graphics2D g = (Graphics2D)this.getGraphics();
-		  //paint(g);
-		  updateUI();
+		  Graphics2D g = (Graphics2D)this.getGraphics();
+		  paint(g);
+		  //updateUI();
 		  //revalidate();
 		  //repaint(0, 0,0, getWidth(), getHeight());
 		}
