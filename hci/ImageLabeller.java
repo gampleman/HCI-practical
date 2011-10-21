@@ -49,12 +49,7 @@ public class ImageLabeller extends JFrame implements ActionListener {
 	 */
 	ImagePanel imagePanel = null;
 	
-	/**
-	 * handles New Object button action
-	 */
-	public void addNewPolygon() {
-		//imagePanel.addNewPolygon();
-	}
+
 	
 	@Override
 	public void paint(Graphics g) {
@@ -70,42 +65,13 @@ public class ImageLabeller extends JFrame implements ActionListener {
 	public void setupGUI(String imageFilename) throws Exception {
 		this.addWindowListener(new WindowAdapter() {
 		  	public void windowClosing(WindowEvent event) {
-		  		//here we exit the program (maybe we should ask if the user really wants to do it?)
-		  		//maybe we also want to store the polygons somewhere? and read them next time
 		  		imagePanel.save();
-		  		System.out.println("Bye bye!");
 		    	System.exit(0);
 		  	}
 		});
 
-		//setup main window panel
-		//appPanel = new JPanel();
-		
-		//this.setLayout(new BoxLayout(appPanel, BoxLayout.X_AXIS));
-		
-		
-
-       //      //create toolbox panel
-      //     toolboxPanel = new JPanel();
-      //         
-      //         //Add button
-      // JButton newPolyButton = new JButton("New object");
-      // newPolyButton.setMnemonic(KeyEvent.VK_N);
-      // newPolyButton.setSize(50, 20);
-      // newPolyButton.setEnabled(true);
-      // newPolyButton.addActionListener(new ActionListener() {
-      //  @Override
-      //  public void actionPerformed(ActionEvent e) {
-      //        addNewPolygon();
-      //  }
-      // });
-      // newPolyButton.setToolTipText("Click to add new object");
-      // 
-      // toolboxPanel.add(newPolyButton);
-   		
-		//add toolbox to window
-		//appPanel.add(toolboxPanel);
-		    //Create and set up the image panel.
+	
+		//Create and set up the image panel.
 		imagePanel = new ImagePanel(imageFilename);
 		imagePanel.setOpaque(true); //content panes must be opaque
 		Dimension panelSize = new Dimension(800, 600);
@@ -113,9 +79,8 @@ public class ImageLabeller extends JFrame implements ActionListener {
 		this.setMinimumSize(panelSize);
 		this.setPreferredSize(panelSize);
 		this.setMaximumSize(panelSize);
-    //appPanel.add(imagePanel);
     this.setContentPane(imagePanel);
-    
+    // Create the menus
     JMenuBar menuBar;
     JMenu menu, submenu;
     JMenuItem menuItem;
@@ -128,17 +93,13 @@ public class ImageLabeller extends JFrame implements ActionListener {
     //Build the first menu.
     menu = new JMenu("File");
     menu.setMnemonic(KeyEvent.VK_F);
-    menu.getAccessibleContext().setAccessibleDescription(
-            "Open and load files...");
+    menu.getAccessibleContext().setAccessibleDescription("Open and load files...");
     menuBar.add(menu);
 
     //a group of JMenuItems
-    menuItem = new JMenuItem("Open...",
-                             KeyEvent.VK_T);
-    menuItem.setAccelerator(KeyStroke.getKeyStroke(
-            KeyEvent.VK_O, ActionEvent.CTRL_MASK));
-    menuItem.getAccessibleContext().setAccessibleDescription(
-            "Open an image.");
+    menuItem = new JMenuItem("Open...", KeyEvent.VK_T);
+    menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+    menuItem.getAccessibleContext().setAccessibleDescription("Open an image.");
     menu.add(menuItem);
     menuItem.addActionListener(this);
 
@@ -148,31 +109,28 @@ public class ImageLabeller extends JFrame implements ActionListener {
     menu.add(menuItem);
     menuItem.addActionListener(this);
     menuItem = new JMenuItem("Save As...");
-    menuItem.setAccelerator(KeyStroke.getKeyStroke(
-            KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.ALT_MASK));
+    menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.ALT_MASK));
     menu.add(menuItem);
     menuItem.addActionListener(this);
     // OSX apps need a help menu
     menu = new JMenu("Help");
     menu.setMnemonic(KeyEvent.VK_N);
-    menu.getAccessibleContext().setAccessibleDescription(
-            "Help menu");
+    menu.getAccessibleContext().setAccessibleDescription("Help menu");
     menuBar.add(menu);
-
-
     menuItem = new JMenuItem("Show Introductory Video");
     menu.add(menuItem);
     menuItem.addActionListener(this);
-
-
     setJMenuBar(menuBar);
     
     
 		//display all the stuff
 		this.pack();
-        this.setVisible(true);
+    this.setVisible(true);
 	}
 	
+	/**
+	 * Event handler for the menus
+	 */
 	public void actionPerformed(ActionEvent e) {
     System.out.println("Menu: "+((JMenuItem)e.getSource()).getText());
     String txt = ((JMenuItem)e.getSource()).getText();
@@ -187,7 +145,6 @@ public class ImageLabeller extends JFrame implements ActionListener {
               try {
 					      setupGUI(file.getPath());
 					    } catch (Exception er) {
-      					// TODO Auto-generated catch block
       					er.printStackTrace();
       				}
             } else{

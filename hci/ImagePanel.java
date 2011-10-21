@@ -26,9 +26,10 @@ import javax.swing.JLabel;
 /**
  * Handles image editing panel
  * @author Michal
+ * @author Jakub
  *
  */
-public class ImagePanel extends JPanel implements MouseListener, MouseMotionListener, java.awt.event.ActionListener, java.awt.event.KeyListener {
+public class ImagePanel extends JPanel implements MouseListener, MouseMotionListener,  java.awt.event.KeyListener {
 	/**
 	 * some java stuff to get rid of warnings
 	 */
@@ -44,7 +45,11 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	 */
 	Polygon currentPolygon = null;
 	
-	int mode = 0;
+  /**
+   * Index of polygonList indicating which polygon is selected
+   *
+   * -1 means that nothing is selected.
+   */
 	int selectedIndex = -1;
 	
 	/**
@@ -52,17 +57,31 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	 */
 	ArrayList<Polygon> polygonsList = null;
 	
-	boolean snapping = false;
-	
-	private BufferedImage offImg;
-	private int w, h, m_x, m_y;
-	private boolean newBufferedImage;
-	private String imageName;
-	private int pointBeingDragged = -1;
-	private Point mousePressedPoint;
-	private JLabel hint;
 	/**
-	 * list of Colors
+	 * Indicates whether we are snapping towards the first segment of a polygon.
+	 */
+	boolean snapping = false;
+	/**
+	 * Used for double buffering the rendering, only needed on DICE (I think). Causes some artifacts
+	 */
+	private BufferedImage offImg;
+	private boolean newBufferedImage;
+	private int w, h, m_x, m_y; // various coordinates
+	/**
+	 * Path to the currently edited image
+	 */
+	private String imageName;
+	/**
+	 * Index of point that is being currently dragged.
+	 * If -1 then none is being dragged.
+	 */
+	private int pointBeingDragged = -1;
+	/**
+	 * Point where Drag operation began. Used for computing translations.
+	 */
+	private Point mousePressedPoint;
+	/**
+	 * list of Colors assigned in this order.
 	 */
 	Color[] colors = new Color[]{Color.RED, Color.BLACK, Color.BLUE, Color.CYAN, Color.GRAY, Color.GREEN, Color.LIGHT_GRAY, Color.MAGENTA, Color.ORANGE, Color.DARK_GRAY, Color.PINK, Color.WHITE, Color.YELLOW};
 	
@@ -73,19 +92,13 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	public ImagePanel() {
 		currentPolygon = new Polygon();
 		polygonsList = new ArrayList<Polygon>();
-
 		this.setVisible(true);
-
 		Dimension panelSize = new Dimension(800, 600);
 		this.setSize(panelSize);
 		this.setMinimumSize(panelSize);
 		this.setPreferredSize(panelSize);
 		this.setMaximumSize(panelSize);
-		
-		//hint = new JLabel("Test string");
-		//add(hint);
-		//System.out.println(isDoubleBuffered());
-		setToolTipText("Test");
+		setToolTipText("Test"); // Overriden later to something more sensible
 		setBorder(null);
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -93,11 +106,8 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	}
 	
 	@Override
-	public boolean isFocusable() { return true; }
+	public boolean isFocusable() { return true; } // enables keyboard input
 	
-	public void delete() {
-	  System.out.println("Delete called");
-	}
 	
 	/**
 	 * extended constructor - loads image to be labelled
@@ -119,15 +129,15 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 			h = newHeight;
 			//updateUI();
 		}
-		if ((new File(imageName + ".labels")).exists()) {
-		  System.out.println("Exists");
+		if ((new File(imageName + ".labels")).exists()) { // Autoload labels file
 		  load();
-		} else {
-		  System.out.println("Exists not: " + imageName + ".labels");
 		}
 		updateUI();
 	}
 
+  /**
+	 * Used for double buffering the rendering, only needed on DICE (I think). Causes some artifacts
+	 */
    public Graphics2D getBuffer() {
       Graphics2D g2 = null;
    
@@ -154,6 +164,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
       return g2;
     }
   
+  /**
+   * Autosave
+   */
   public void save() {
     saveAs(imageName+".labels");
   }
@@ -172,7 +185,6 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
   }
   
   public void load() throws java.io.FileNotFoundException {
-    System.out.println("Loading");
     File f = new File(imageName + ".labels");
     java.util.Scanner s = new java.util.Scanner(f);
     s.useDelimiter("\\n\\s*\\n");
@@ -191,6 +203,11 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		}
 	}
 	
+	// Drawing code ahead. Prefferably I'd like to somehow move a lot of this to Polygon, but the pathIterator api is pretty wierd
+	
+	/**
+	 * Draws a complete polygon with fill and label.
+	 */
 	public void drawComplete(Graphics2D g, Polygon p, Color c) {
 	  g.setColor(c);
 	  g.draw(p);
@@ -201,7 +218,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		g.fill(p);
 	}
 	
-	
+	/**
+	 * Draws the highlighted points of a selected polygon.
+	 */
 	public void drawSelection(Graphics2D g, Polygon p, Color c) {
 	  g.setColor(c);
 	  ArrayList<Point> points = p.getPoints();
@@ -211,6 +230,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		}
 	}
 	
+	/**
+	 * Main painting method
+	 */
 	@Override
 	public void paint(Graphics g) {
 	  
@@ -224,11 +246,11 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		//super.paint(g2);
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
-       g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+    g2.setRenderingHint(RenderingHints.KEY_RENDERING,
                            RenderingHints.VALUE_RENDER_QUALITY);
     
        // .. clear canvas ..
-       g2.clearRect(0, 0, w, h);
+      g2.clearRect(0, 0, w, h);
 		//display image
 		ShowImage(g2);
 		int current_color = 1;
@@ -278,26 +300,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 			g.fillOval(currentVertex.getX() - 5, currentVertex.getY() - 5, 10, 10);
 		}
 	}
-	
-	/**
-	 * displays last stroke of the polygon (arch between the last and first vertices)
-	 * @param polygon to be finished
-	 */
-	public void finishPolygon(Graphics2D g, Polygon polygon, Color color) {
-		//if there are less than 3 vertices than nothing to be completed
-		ArrayList<Point> points = polygon.getPoints();
-		if (polygon.size() >= 3) {
-			Point firstVertex = points.get(0);
-			Point lastVertex = points.get(points.size() - 1);
-			g.setColor(color);
-			g.drawLine(firstVertex.getX(), firstVertex.getY(), lastVertex.getX(), lastVertex.getY());
-			
-			g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 20));
-			g.fill(polygon);
-		}
-		
-	}
-	
+
 	public String showTextField() {
 	  String name = JOptionPane.showInputDialog("Please enter a label for the object: ");
 	  if(name != null) {
@@ -317,13 +320,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
     
 	}
 	
-	
-	public void actionPerformed(java.awt.event.ActionEvent evt) {
-      //String text = textField.getText();
-      
-  }
-
-
+  /**
+   * Mouse click handler
+   */
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		int x = e.getX();
@@ -369,6 +368,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
     updateUI();
 	}
 	
+	/**
+	 * Mouse move handler, mainly changes the Cursor type to reflect action to be taken.
+	 */
 	@Override
 	public void mouseMoved(MouseEvent e) {
 	  m_x = e.getX();
@@ -401,6 +403,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		}
 	}
 	
+	/**
+	 * Returns true if (x,y) is inside any polygon.
+	 */
 	private boolean aboveAPolygon(int x, int y)
 	{
 	  for(Polygon p : polygonsList) {
@@ -411,9 +416,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	  return false;
 	}
 	
-	/*
-	Context sensitive help.
-	*/
+	/**
+	 * Context sensitive help.
+	 */
 	@Override
 	public String getToolTipText(MouseEvent e) {
 	  m_x = e.getX();
@@ -433,7 +438,9 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 		}
 	}
 	
-	
+	/**
+	 * Mouse drag handler, handles mostly editing.
+	 */
 	@Override
 	public void mouseDragged(MouseEvent e) {
 	  int i;
@@ -469,7 +476,7 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-	  mousePressedPoint = new Point(e.getX(), e.getY());
+	  mousePressedPoint = new Point(e.getX(), e.getY()); // used in mouse drag
 	}
 
 	@Override
@@ -481,9 +488,10 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
   public void keyTyped(KeyEvent e) {
   }
 
-
+  /**
+   * Nudge support - when user uses the arrows the currently selected object moves.
+   */
   public void keyPressed(KeyEvent e) {
-    
     switch(e.getKeyCode()) {    
       case KeyEvent.VK_LEFT:
   		  if(selectedIndex != -1) {
@@ -512,7 +520,10 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
     }
   }
 
-
+  /**
+   * Back space and delete delete the current object
+   * Enter either deselects or completes current object
+   */
   public void keyReleased(KeyEvent e) {
     System.out.println(e.getKeyCode());
     switch(e.getKeyCode()) {
@@ -542,7 +553,6 @@ public class ImagePanel extends JPanel implements MouseListener, MouseMotionList
 	  //paint(g);
     updateUI();
   }
-  
   
 	
 }

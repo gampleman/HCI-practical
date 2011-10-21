@@ -8,16 +8,17 @@ import java.io.*;
  * @author Jakub
  * @see http://download.oracle.com/javase/1.4.2/docs/api/java/awt/Polygon.html
  */
-public class Polygon extends java.awt.Polygon {
+public class Polygon extends java.awt.Polygon { // Uses superclass for efficient storage and optimized drawing
 
   String label = "";
-  //ArrayList<Point> points = null;
 	
 	
 	public Polygon() {
 	  super();
 	}
-	
+	/**
+	 * Kept compatibility with old API
+	 */
 	public Polygon(ArrayList<Point> points) {
 		super();
 		for (Point p : points) {
@@ -25,6 +26,9 @@ public class Polygon extends java.awt.Polygon {
 		}
 	}
 	
+	/**
+	 * Initializes Polygon from string as produced by toString();
+	 */
 	public Polygon(String str) {
 	  java.util.Scanner s = new java.util.Scanner(str);
 	  this.label = s.nextLine();
@@ -60,7 +64,7 @@ public class Polygon extends java.awt.Polygon {
   public void setPoint(int index, int x, int y) {
     xpoints[index] = x;
     ypoints[index] = y;
-    invalidate();
+    invalidate(); // recalculates things like the bounds (so that label is repositioned)
   }
 
 	public String getLabel() {
@@ -72,10 +76,17 @@ public class Polygon extends java.awt.Polygon {
 		this.label = label;
 	}
 	
+	/**
+	 * Returns true if (x,y) is sqrt(125) pixels from the first point
+	 */
 	public boolean closeToBeggening(int x, int y) {
 	  return d2(x,y, xpoints[0], ypoints[0]) < 125;
 	}
 	
+	/**
+	 * Returns index of point that (x,y) is closer then sqrt(145) pixels to.
+	 * Returns -1 if none such exists.
+	 */
 	public int closeToCorner(int x, int y) {
 	  for (int i = 0; i < npoints ; i++) {
 		  if(d2(x,y,xpoints[i], ypoints[i]) < 145) {
@@ -85,7 +96,7 @@ public class Polygon extends java.awt.Polygon {
 		return -1;
 	}
 	
-	private int d2(int x, int y, int x1, int y1) { // distance squared
+	private int d2(int x, int y, int x1, int y1) { //= squared euclidian distance 
 	  int dist_x = x - x1;
 	  int dist_y = y - y1;
 	  return dist_x * dist_x + dist_y * dist_y;
@@ -120,6 +131,9 @@ public class Polygon extends java.awt.Polygon {
 	  return p;
 	}
 	
+	/**
+	 * Used likewise for debugging as well as for saving.
+	 */
 	public String toString() {
 	  String s = getLabel() + "\n";
 	  for (int i=0; i<npoints; i++){
